@@ -45,6 +45,7 @@ export interface WorkspaceSettings {
   transactional_email_provider_id?: string
   marketing_email_provider_id?: string
   email_tracking_enabled: boolean
+  block_disposable_emails?: boolean
   template_blocks?: TemplateBlock[]
   custom_endpoint_url?: string
   custom_field_labels?: Record<string, string>

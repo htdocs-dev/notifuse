@@ -22,6 +22,7 @@ interface GeneralSettingsFormValues {
   logo_url?: string
   timezone: string
   email_tracking_enabled: boolean
+  block_disposable_emails: boolean
   custom_endpoint_url?: string
   languages?: string[]
   default_language?: string
@@ -39,6 +40,7 @@ function toFormValues(workspace: Workspace | null): GeneralSettingsFormValues {
     logo_url: workspace?.settings.logo_url || '',
     timezone: workspace?.settings.timezone || 'UTC',
     email_tracking_enabled: workspace?.settings.email_tracking_enabled || false,
+    block_disposable_emails: workspace?.settings.block_disposable_emails || false,
     custom_endpoint_url: workspace?.settings.custom_endpoint_url || '',
     languages: workspace?.settings.languages || ['en'],
     default_language: workspace?.settings.default_language || 'en'
@@ -83,6 +85,7 @@ export function GeneralSettings({ workspace, onWorkspaceUpdate, isOwner }: Gener
           cover_url: workspace?.settings.cover_url || null,
           timezone: values.timezone,
           email_tracking_enabled: values.email_tracking_enabled,
+          block_disposable_emails: values.block_disposable_emails,
           // Emptied means emptied. workspaces.update keeps every setting its body leaves
           // out, and undefined is dropped by JSON.stringify — so sending it restored the
           // very domain the operator was migrating off. An empty string is a value the
@@ -156,6 +159,20 @@ export function GeneralSettings({ workspace, onWorkspaceUpdate, isOwner }: Gener
 
           <Descriptions.Item label={t`Email Opens and Clicks Tracking`}>
             {workspace?.settings.email_tracking_enabled ? (
+              <span style={{ color: '#52c41a' }}>
+                <CheckCircleOutlined style={{ marginRight: '8px' }} />
+                {t`Enabled`}
+              </span>
+            ) : (
+              <span style={{ color: '#ff4d4f' }}>
+                <CloseCircleOutlined style={{ marginRight: '8px' }} />
+                {t`Disabled`}
+              </span>
+            )}
+          </Descriptions.Item>
+
+          <Descriptions.Item label={t`Block Disposable Email Addresses`}>
+            {workspace?.settings.block_disposable_emails ? (
               <span style={{ color: '#52c41a' }}>
                 <CheckCircleOutlined style={{ marginRight: '8px' }} />
                 {t`Enabled`}
@@ -258,6 +275,15 @@ export function GeneralSettings({ workspace, onWorkspaceUpdate, isOwner }: Gener
           name="email_tracking_enabled"
           label={t`Email Opens and Clicks Tracking`}
           tooltip={t`When enabled, links in the email will be tracked for opens and clicks`}
+          valuePropName="checked"
+        >
+          <Switch />
+        </Form.Item>
+
+        <Form.Item
+          name="block_disposable_emails"
+          label={t`Block Disposable Email Addresses`}
+          tooltip={t`When enabled, contacts created or imported through the API with a throw-away email address (temp-mail providers) are rejected. Public subscription forms always reject them.`}
           valuePropName="checked"
         >
           <Switch />

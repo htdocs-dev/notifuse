@@ -1,6 +1,9 @@
 package disposable_emails
 
-import "slices"
+import (
+	"slices"
+	"strings"
+)
 
 // list from: https://github.com/tompec/disposable-email-domains/blob/main/index.json
 var disposableEmails = []string{
@@ -122358,6 +122361,19 @@ var disposableEmails = []string{
 	"zzzz1717.com",
 }
 
-func IsDisposableEmail(email string) bool {
-	return slices.Contains(disposableEmails, email)
+// IsDisposableEmail reports whether the address belongs to a known throw-away
+// mail provider. It accepts a full address or a bare domain, so callers never
+// split the address themselves (passing a full address used to never match).
+// The domain is compared case-insensitively. The list is kept sorted in byte
+// order, so a binary search answers in ~17 comparisons instead of a scan.
+func IsDisposableEmail(emailOrDomain string) bool {
+	domain := strings.ToLower(strings.TrimSpace(emailOrDomain))
+	if at := strings.LastIndexByte(domain, '@'); at >= 0 {
+		domain = domain[at+1:]
+	}
+	if domain == "" {
+		return false
+	}
+	_, found := slices.BinarySearch(disposableEmails, domain)
+	return found
 }

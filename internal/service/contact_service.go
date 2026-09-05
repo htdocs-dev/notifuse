@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/Notifuse/notifuse/internal/domain"
+	"github.com/Notifuse/notifuse/pkg/disposable_emails"
 	"github.com/Notifuse/notifuse/pkg/logger"
 )
 
@@ -359,11 +360,22 @@ func (s *ContactService) BatchImportContacts(ctx context.Context, workspaceID st
 	validContacts := make([]*domain.Contact, 0, len(contacts))
 	validContactIndices := make([]int, 0, len(contacts))
 
+	isDisposable, err := s.disposableEmailFilter(ctx, workspaceID)
+	if err != nil {
+		response.Error = err.Error()
+		response.Err = err
+		return response
+	}
+
 	for i, contact := range contacts {
 		// CreatedAt and UpdatedAt are optional - if not provided, DB will use CURRENT_TIMESTAMP
 		// If provided, the values will be used (allows historical imports)
 
-		if err := contact.Validate(); err != nil {
+		err := contact.Validate()
+		if err == nil && isDisposable(contact.Email) {
+			err = errDisposableEmail
+		}
+		if err != nil {
 			// Record validation error
 			operation := &domain.UpsertContactOperation{
 				Email:  contact.Email,
@@ -504,6 +516,21 @@ func (s *ContactService) UpsertContact(ctx context.Context, workspaceID string, 
 		return operation
 	}
 
+	isDisposable, err := s.disposableEmailFilter(ctx, workspaceID)
+	if err != nil {
+		operation.Action = domain.UpsertContactOperationError
+		operation.Error = err.Error()
+		operation.Err = err
+		return operation
+	}
+	if isDisposable(contact.Email) {
+		operation.Action = domain.UpsertContactOperationError
+		operation.Error = errDisposableEmail.Error()
+		operation.Err = errDisposableEmail
+		s.logger.WithField("email", contact.Email).Info("Rejected contact: disposable email address")
+		return operation
+	}
+
 	// CreatedAt and UpdatedAt are optional - if not provided, DB will use CURRENT_TIMESTAMP
 	// If provided, the values will be used (allows historical imports)
 
@@ -558,4 +585,21 @@ func (s *ContactService) CountContacts(ctx context.Context, workspaceID string) 
 	}
 
 	return count, nil
+}
+
+// errDisposableEmail is the operation error for an address the workspace refuses.
+var errDisposableEmail = fmt.Errorf("disposable email addresses are not allowed")
+
+// disposableEmailFilter returns a predicate that reports whether the workspace
+// refuses the given address. It reads the workspace once so a batch pays one
+// lookup, and it is a no-op (always false) when the setting is off.
+func (s *ContactService) disposableEmailFilter(ctx context.Context, workspaceID string) (func(email string) bool, error) {
+	workspace, err := s.workspaceRepo.GetByID(ctx, workspaceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workspace: %w", err)
+	}
+	if !workspace.Settings.BlockDisposableEmails {
+		return func(string) bool { return false }, nil
+	}
+	return disposable_emails.IsDisposableEmail, nil
 }

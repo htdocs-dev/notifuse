@@ -30,6 +30,10 @@ func createContactServiceWithMocks(ctrl *gomock.Controller) (*ContactService, *m
 	mockSegmentQueueRepo := mocks.NewMockContactSegmentQueueRepository(ctrl)
 	mockLogger := pkgmocks.NewMockLogger(ctrl)
 
+	// Upsert and import read the workspace once for the disposable-email setting;
+	// a workspace with default settings keeps every existing test unchanged.
+	mockWorkspaceRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(&domain.Workspace{}, nil).AnyTimes()
+
 	service := NewContactService(
 		mockRepo,
 		mockWorkspaceRepo,
@@ -1583,4 +1587,81 @@ func TestContactService_AuthenticationFailureCarriesTypedError(t *testing.T) {
 			tc.assert(t, response.Err)
 		})
 	}
+}
+
+// The block reads one workspace setting and never reaches the repository.
+func TestContactService_UpsertContact_BlocksDisposableEmail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockContactRepository(ctrl)
+	mockWorkspaceRepo := mocks.NewMockWorkspaceRepository(ctrl)
+	mockLogger := pkgmocks.NewMockLogger(ctrl)
+	mockLogger.EXPECT().WithField(gomock.Any(), gomock.Any()).Return(mockLogger).AnyTimes()
+	mockLogger.EXPECT().Info(gomock.Any()).AnyTimes()
+
+	service := NewContactService(mockRepo, mockWorkspaceRepo, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, mockLogger)
+
+	// System call: skips authentication, like the Supabase bridge does.
+	ctx := context.WithValue(context.Background(), domain.SystemCallKey, true)
+	blocking := &domain.Workspace{Settings: domain.WorkspaceSettings{BlockDisposableEmails: true}}
+	mockWorkspaceRepo.EXPECT().GetByID(gomock.Any(), "ws1").Return(blocking, nil).Times(2)
+
+	op := service.UpsertContact(ctx, "ws1", &domain.Contact{Email: "bot@0-180.com"})
+	assert.Equal(t, domain.UpsertContactOperationError, op.Action)
+	assert.ErrorIs(t, op.Err, errDisposableEmail)
+
+	// A normal address goes through to the repository.
+	mockRepo.EXPECT().UpsertContact(gomock.Any(), "ws1", gomock.Any()).Return(true, nil)
+	mockRepo.EXPECT().GetContactByEmail(gomock.Any(), "ws1", "ok@example.com").Return(&domain.Contact{Email: "ok@example.com"}, nil).AnyTimes()
+	op = service.UpsertContact(ctx, "ws1", &domain.Contact{Email: "ok@example.com"})
+	assert.Equal(t, domain.UpsertContactOperationCreate, op.Action)
+}
+
+func TestContactService_BatchImportContacts_BlocksDisposableEmail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockContactRepository(ctrl)
+	mockWorkspaceRepo := mocks.NewMockWorkspaceRepository(ctrl)
+	mockAuthService := mocks.NewMockAuthService(ctrl)
+	mockLogger := pkgmocks.NewMockLogger(ctrl)
+	mockLogger.EXPECT().WithField(gomock.Any(), gomock.Any()).Return(mockLogger).AnyTimes()
+	mockLogger.EXPECT().Info(gomock.Any()).AnyTimes()
+	service := NewContactService(mockRepo, mockWorkspaceRepo, mockAuthService, nil, nil, nil, nil, nil, nil, nil, nil, nil, mockLogger)
+
+	ctx := context.Background()
+	userWorkspace := &domain.UserWorkspace{
+		UserID:      "user123",
+		WorkspaceID: "ws1",
+		Role:        "member",
+		Permissions: domain.UserPermissions{
+			domain.PermissionResourceContacts: {Read: true, Write: true},
+		},
+	}
+	mockAuthService.EXPECT().AuthenticateUserForWorkspace(ctx, "ws1").Return(ctx, &domain.User{}, userWorkspace, nil)
+	// One workspace read for the whole batch.
+	mockWorkspaceRepo.EXPECT().GetByID(gomock.Any(), "ws1").Return(&domain.Workspace{Settings: domain.WorkspaceSettings{BlockDisposableEmails: true}}, nil).Times(1)
+
+	// Only the good address reaches the bulk upsert.
+	mockRepo.EXPECT().BulkUpsertContacts(gomock.Any(), "ws1", gomock.Any()).DoAndReturn(
+		func(_ context.Context, _ string, contacts []*domain.Contact) ([]domain.BulkUpsertResult, error) {
+			assert.Len(t, contacts, 1)
+			assert.Equal(t, "ok@example.com", contacts[0].Email)
+			return []domain.BulkUpsertResult{{Email: "ok@example.com", IsNew: true}}, nil
+		})
+
+	response := service.BatchImportContacts(ctx, "ws1", []*domain.Contact{
+		{Email: "bot@0-180.com"},
+		{Email: "ok@example.com"},
+	}, nil)
+	assert.Empty(t, response.Error)
+
+	byEmail := map[string]*domain.UpsertContactOperation{}
+	for _, op := range response.Operations {
+		byEmail[op.Email] = op
+	}
+	assert.Equal(t, domain.UpsertContactOperationError, byEmail["bot@0-180.com"].Action)
+	assert.Contains(t, byEmail["bot@0-180.com"].Error, "disposable")
+	assert.Equal(t, domain.UpsertContactOperationCreate, byEmail["ok@example.com"].Action)
 }

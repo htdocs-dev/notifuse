@@ -437,6 +437,10 @@ type WorkspaceSettings struct {
 	MarketingEmailProviderID     string              `json:"marketing_email_provider_id,omitempty"`
 	EncryptedSecretKey           string              `json:"encrypted_secret_key,omitempty"`
 	EmailTrackingEnabled         bool                `json:"email_tracking_enabled"`
+	// BlockDisposableEmails refuses contacts whose address belongs to a known
+	// throw-away mail provider on the authenticated contact upsert and import
+	// paths. The public subscribe form always refuses them.
+	BlockDisposableEmails bool `json:"block_disposable_emails"`
 	// TemplateBlocks live inside this settings blob rather than in their own table,
 	// which is why block CRUD emits no webhook events while template CRUD does:
 	// every webhook event in the product is produced by a row trigger writing to
@@ -1444,6 +1448,7 @@ var preservableWorkspaceSettingKeys = []string{
 	"transactional_email_provider_id",
 	"marketing_email_provider_id",
 	"email_tracking_enabled",
+	"block_disposable_emails",
 	"custom_endpoint_url",
 }
 
@@ -1508,6 +1513,7 @@ func (ws *WorkspaceSettings) PreserveOmitted(stored WorkspaceSettings) {
 	keep("transactional_email_provider_id", func() { ws.TransactionalEmailProviderID = stored.TransactionalEmailProviderID })
 	keep("marketing_email_provider_id", func() { ws.MarketingEmailProviderID = stored.MarketingEmailProviderID })
 	keep("email_tracking_enabled", func() { ws.EmailTrackingEnabled = stored.EmailTrackingEnabled })
+	keep("block_disposable_emails", func() { ws.BlockDisposableEmails = stored.BlockDisposableEmails })
 	keep("custom_endpoint_url", func() { ws.CustomEndpointURL = stored.CustomEndpointURL })
 }
 
