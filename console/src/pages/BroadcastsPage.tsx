@@ -56,7 +56,8 @@ import {
   faChevronDown,
   faChevronUp,
   faSpinner,
-  faRefresh
+  faRefresh,
+  faReply
 } from '@fortawesome/free-solid-svg-icons'
 import React, { useState, useEffect, useRef } from 'react'
 import dayjs from '../lib/dayjs'
@@ -313,6 +314,7 @@ interface BroadcastCardProps {
   onRetryFailed: (broadcast: Broadcast) => void
   onResume: (broadcast: Broadcast) => void
   onCancel: (broadcast: Broadcast) => void
+  onResendToNonOpeners: (broadcast: Broadcast) => void
   onSchedule: (broadcast: Broadcast) => void
   onRefresh: (broadcast: Broadcast) => void
   currentWorkspace: Workspace | undefined
@@ -332,6 +334,7 @@ const BroadcastCard: React.FC<BroadcastCardProps> = ({
   onRetryFailed,
   onResume,
   onCancel,
+  onResendToNonOpeners,
   onSchedule,
   onRefresh,
   currentWorkspace,
@@ -644,6 +647,29 @@ const BroadcastCard: React.FC<BroadcastCardProps> = ({
               >
                 <Button type="text" size="small" disabled={!permissions?.broadcasts?.write}>
                   <FontAwesomeIcon icon={faRotateRight} style={{ opacity: 0.7 }} />
+                </Button>
+              </Popconfirm>
+            </Tooltip>
+          )}
+          {broadcast.status === 'processed' &&
+            deliveryVerdict(progressStats).kind !== 'sending' && (
+            <Tooltip
+              title={
+                !permissions?.broadcasts?.write
+                  ? t`You don't have write permission for broadcasts`
+                  : t`Resend to recipients who did not open`
+              }
+            >
+              <Popconfirm
+                title={t`Resend to non-openers?`}
+                description={t`A "did not open" segment and a new draft broadcast will be created. Nothing is sent until you schedule the draft.`}
+                onConfirm={() => onResendToNonOpeners(broadcast)}
+                okText={t`Create draft`}
+                cancelText={t`Cancel`}
+                disabled={!permissions?.broadcasts?.write}
+              >
+                <Button type="text" size="small" disabled={!permissions?.broadcasts?.write}>
+                  <FontAwesomeIcon icon={faReply} style={{ opacity: 0.7 }} />
                 </Button>
               </Popconfirm>
             </Tooltip>
@@ -1558,6 +1584,23 @@ export function BroadcastsPage() {
     }
   }
 
+  const handleResendToNonOpeners = async (broadcast: Broadcast) => {
+    try {
+      const { broadcast: draft } = await broadcastApi.resendToNonOpeners({
+        workspace_id: workspaceId,
+        id: broadcast.id
+      })
+      message.success(t`Draft "${draft.name}" created. Schedule it when the segment has finished building.`)
+      queryClient.invalidateQueries({ queryKey: ['segments', workspaceId] })
+      queryClient.invalidateQueries({
+        queryKey: ['broadcasts', workspaceId, currentPage, pageSize]
+      })
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : t`Failed to create the resend draft`)
+      console.error(error)
+    }
+  }
+
   const openDeleteModal = (broadcast: Broadcast) => {
     setBroadcastToDelete(broadcast)
     setDeleteModalVisible(true)
@@ -1698,6 +1741,7 @@ export function BroadcastsPage() {
               onRetryFailed={handleRetryFailedBroadcast}
               onResume={handleResumeBroadcast}
               onCancel={handleCancelBroadcast}
+              onResendToNonOpeners={handleResendToNonOpeners}
               onSchedule={handleScheduleBroadcast}
               onRefresh={handleRefreshBroadcast}
               currentWorkspace={currentWorkspace}

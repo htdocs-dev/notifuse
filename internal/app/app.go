@@ -913,6 +913,8 @@ func (a *App) InitServices() error {
 		a.authService,
 		a.logger,
 	)
+	// "Resend to non-openers" builds a segment before it drafts the broadcast.
+	a.broadcastService.SetSegmentService(a.segmentService)
 
 	// Initialize blog service (before workspace service)
 	a.blogService = service.NewBlogService(

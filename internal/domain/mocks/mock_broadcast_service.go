@@ -49,6 +49,21 @@ func (mr *MockBroadcastServiceMockRecorder) CancelBroadcast(arg0, arg1 interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelBroadcast", reflect.TypeOf((*MockBroadcastService)(nil).CancelBroadcast), arg0, arg1)
 }
 
+// ResendToNonOpeners mocks base method.
+func (m *MockBroadcastService) ResendToNonOpeners(arg0 context.Context, arg1 *domain.ResendToNonOpenersRequest) (*domain.Broadcast, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResendToNonOpeners", arg0, arg1)
+	ret0, _ := ret[0].(*domain.Broadcast)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResendToNonOpeners indicates an expected call of ResendToNonOpeners.
+func (mr *MockBroadcastServiceMockRecorder) ResendToNonOpeners(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResendToNonOpeners", reflect.TypeOf((*MockBroadcastService)(nil).ResendToNonOpeners), arg0, arg1)
+}
+
 // CreateBroadcast mocks base method.
 func (m *MockBroadcastService) CreateBroadcast(arg0 context.Context, arg1 *domain.CreateBroadcastRequest) (*domain.Broadcast, error) {
 	m.ctrl.T.Helper()

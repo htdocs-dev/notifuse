@@ -54,6 +54,7 @@ func (h *BroadcastHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/broadcasts.pause", requireAuth(http.HandlerFunc(h.HandlePause)))
 	mux.Handle("/api/broadcasts.resume", requireAuth(http.HandlerFunc(h.HandleResume)))
 	mux.Handle("/api/broadcasts.cancel", requireAuth(http.HandlerFunc(h.HandleCancel)))
+	mux.Handle("/api/broadcasts.resendToNonOpeners", requireAuth(http.HandlerFunc(h.HandleResendToNonOpeners)))
 	mux.Handle("/api/broadcasts.retryFailed", restrictedInDemo(requireAuth(http.HandlerFunc(h.HandleRetryFailed))))
 	mux.Handle("/api/broadcasts.sendToIndividual", requireAuth(http.HandlerFunc(h.HandleSendToIndividual)))
 	mux.Handle("/api/broadcasts.delete", requireAuth(http.HandlerFunc(h.HandleDelete)))

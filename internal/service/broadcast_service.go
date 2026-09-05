@@ -31,6 +31,8 @@ type BroadcastService struct {
 	listService        domain.ListService
 	dataFeedFetcher    broadcast.DataFeedFetcher
 	apiEndpoint        string
+	// segmentService is optional (see SetSegmentService); only ResendToNonOpeners needs it.
+	segmentService domain.SegmentService
 }
 
 // NewBroadcastService creates a new broadcast service

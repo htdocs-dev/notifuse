@@ -1203,6 +1203,10 @@ type BroadcastService interface {
 	// CancelBroadcast cancels a scheduled broadcast
 	CancelBroadcast(ctx context.Context, request *CancelBroadcastRequest) error
 
+	// ResendToNonOpeners creates a draft broadcast aimed at the recipients of a
+	// processed broadcast who never opened it
+	ResendToNonOpeners(ctx context.Context, request *ResendToNonOpenersRequest) (*Broadcast, error)
+
 	// DeleteBroadcast deletes a broadcast
 	DeleteBroadcast(ctx context.Context, request *DeleteBroadcastRequest) error
 

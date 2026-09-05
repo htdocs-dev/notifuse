@@ -391,6 +391,17 @@ export const broadcastApi = {
     return api.post<{ success: boolean }>('/api/broadcasts.sendToIndividual', params)
   },
 
+  /**
+   * Creates a draft broadcast aimed at the recipients of a processed broadcast
+   * who never opened it. Nothing is sent until the draft is scheduled.
+   */
+  resendToNonOpeners: async (params: {
+    workspace_id: string
+    id: string
+  }): Promise<{ broadcast: Broadcast }> => {
+    return api.post<{ broadcast: Broadcast }>('/api/broadcasts.resendToNonOpeners', params)
+  },
+
   delete: async (params: DeleteBroadcastRequest): Promise<{ success: boolean }> => {
     return api.post<{ success: boolean }>('/api/broadcasts.delete', params)
   },
