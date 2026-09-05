@@ -901,7 +901,7 @@ export function ContactsCsvUploadDrawer({
                     <tr>
                       <th
                         style={{
-                          border: '1px solid #f0f0f0',
+                          border: '1px solid var(--nf-border)',
                           padding: '8px',
                           background: '#fafafa',
                           textAlign: 'left'
@@ -911,7 +911,7 @@ export function ContactsCsvUploadDrawer({
                       </th>
                       <th
                         style={{
-                          border: '1px solid #f0f0f0',
+                          border: '1px solid var(--nf-border)',
                           padding: '8px',
                           background: '#fafafa',
                           textAlign: 'left'
@@ -921,7 +921,7 @@ export function ContactsCsvUploadDrawer({
                       </th>
                       <th
                         style={{
-                          border: '1px solid #f0f0f0',
+                          border: '1px solid var(--nf-border)',
                           padding: '8px',
                           background: '#fafafa',
                           textAlign: 'left'
@@ -934,13 +934,13 @@ export function ContactsCsvUploadDrawer({
                   <tbody>
                     {errorDetails.map((error, index) => (
                       <tr key={index}>
-                        <td style={{ border: '1px solid #f0f0f0', padding: '8px' }}>
+                        <td style={{ border: '1px solid var(--nf-border)', padding: '8px' }}>
                           {error.line}
                         </td>
-                        <td style={{ border: '1px solid #f0f0f0', padding: '8px' }}>
+                        <td style={{ border: '1px solid var(--nf-border)', padding: '8px' }}>
                           {error.email}
                         </td>
-                        <td style={{ border: '1px solid #f0f0f0', padding: '8px' }}>
+                        <td style={{ border: '1px solid var(--nf-border)', padding: '8px' }}>
                           {error.error}
                         </td>
                       </tr>
@@ -1152,7 +1152,7 @@ export function ContactsCsvUploadDrawer({
                         style={{
                           minWidth: '300px',
                           background: 'white',
-                          border: '1px solid #f0f0f0',
+                          border: '1px solid var(--nf-border)',
                           borderRadius: '4px',
                           padding: '4px 8px'
                         }}

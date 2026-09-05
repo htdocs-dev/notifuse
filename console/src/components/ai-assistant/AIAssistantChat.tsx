@@ -105,7 +105,7 @@ export function AIAssistantChat({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
-                borderBottom: '1px solid #f0f0f0',
+                borderBottom: '1px solid var(--nf-border)',
                 backgroundColor: '#fafafa'
               }}
             >
@@ -203,7 +203,7 @@ export function AIAssistantChat({
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '12px 16px',
-              borderBottom: '1px solid #f0f0f0',
+              borderBottom: '1px solid var(--nf-border)',
               backgroundColor: '#fafafa'
             }}
           >
@@ -303,7 +303,7 @@ export function AIAssistantChat({
                         fontSize: 12,
                         color: '#8c8c8c',
                         background: '#fafafa',
-                        border: '1px solid #f0f0f0',
+                        border: '1px solid var(--nf-border)',
                         borderRadius: 6,
                         padding: '6px 10px'
                       }}
@@ -345,7 +345,7 @@ export function AIAssistantChat({
           </div>
 
           {/* Input area */}
-          <div ref={inputContainerRef} style={{ padding: 12, borderTop: '1px solid #f0f0f0' }}>
+          <div ref={inputContainerRef} style={{ padding: 12, borderTop: '1px solid var(--nf-border)' }}>
             <Sender
               value={inputValue}
               onChange={setInputValue}

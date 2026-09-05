@@ -1101,7 +1101,7 @@ export const FileManager = (props: FileManagerProps) => {
                   display: 'flex',
                   alignItems: 'center',
                   padding: '8px 0',
-                  borderBottom: '1px solid #f0f0f0'
+                  borderBottom: '1px solid var(--nf-border)'
                 }}
               >
                 {item.status === 'pending' && <ClockCircleOutlined style={{ color: '#999' }} />}

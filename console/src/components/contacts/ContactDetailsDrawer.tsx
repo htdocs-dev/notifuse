@@ -645,7 +645,7 @@ export function ContactDetailsDrawer({
               width: '400px',
               minWidth: '400px',
               maxWidth: '400px',
-              borderRight: '1px solid #f0f0f0'
+              borderRight: '1px solid var(--nf-border)'
             }}
           >
             {/* Contact info at the top */}
