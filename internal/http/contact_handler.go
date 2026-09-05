@@ -39,6 +39,8 @@ func (h *ContactHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/contacts.delete", requireAuth(http.HandlerFunc(h.handleDelete)))
 	mux.Handle("/api/contacts.import", requireAuth(http.HandlerFunc(h.handleImport)))
 	mux.Handle("/api/contacts.upsert", requireAuth(http.HandlerFunc(h.handleUpsert)))
+	mux.Handle("/api/contacts.tag", requireAuth(http.HandlerFunc(h.handleTag)))     // fork patch 7
+	mux.Handle("/api/contacts.untag", requireAuth(http.HandlerFunc(h.handleUntag))) // fork patch 7
 }
 
 func (h *ContactHandler) handleList(w http.ResponseWriter, r *http.Request) {

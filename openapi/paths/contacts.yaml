@@ -520,3 +520,82 @@
               $ref: '../components/schemas/common.yaml#/ErrorResponse'
             example:
               error: Failed to delete contact
+
+/api/contacts.tag:
+  post:
+    summary: Tag contacts
+    description: Adds tags to contacts. Contacts that already carry all the tags are left untouched. Unknown emails are ignored.
+    operationId: tagContacts
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/contact.yaml#/TagContactsRequest'
+    responses:
+      '200':
+        description: Tags updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/contact.yaml#/TagContactsResponse'
+      '400':
+        description: Bad request - validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '401':
+        description: Unauthorized - invalid or missing authentication token
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '500':
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+
+/api/contacts.untag:
+  post:
+    summary: Untag contacts
+    description: Removes tags from contacts. Contacts without any of the tags are left untouched.
+    operationId: untagContacts
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/contact.yaml#/TagContactsRequest'
+    responses:
+      '200':
+        description: Tags updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/contact.yaml#/TagContactsResponse'
+      '400':
+        description: Bad request - validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '401':
+        description: Unauthorized - invalid or missing authentication token
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '500':
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+

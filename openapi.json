@@ -1764,6 +1764,134 @@
         }
       }
     },
+    "/api/contacts.tag": {
+      "post": {
+        "summary": "Tag contacts",
+        "description": "Adds tags to contacts. Contacts that already carry all the tags are left untouched. Unknown emails are ignored.",
+        "operationId": "tagContacts",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagContactsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tags updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagContactsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/contacts.untag": {
+      "post": {
+        "summary": "Untag contacts",
+        "description": "Removes tags from contacts. Contacts without any of the tags are left untouched.",
+        "operationId": "untagContacts",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagContactsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tags updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagContactsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/contactLists.updateStatus": {
       "post": {
         "summary": "Update contact list subscription status",
@@ -9413,6 +9541,58 @@
           "success": {
             "type": "boolean",
             "example": true
+          }
+        }
+      },
+      "TagContactsRequest": {
+        "type": "object",
+        "description": "Adds or removes tags on contacts. Tags live in the `custom_json_1` field as a\nflat JSON array of strings, so they can be read like any custom field and\nmatched in segments with the `in_array` operator on `custom_json_1`.\n",
+        "required": [
+          "workspace_id",
+          "emails",
+          "tags"
+        ],
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "The ID of the workspace",
+            "example": "ws_1234567890"
+          },
+          "emails": {
+            "type": "array",
+            "description": "Contacts to change (1 to 1000 addresses)",
+            "items": {
+              "type": "string",
+              "format": "email"
+            },
+            "example": [
+              "user@example.com"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags to add or remove",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "customer",
+              "vip"
+            ]
+          }
+        }
+      },
+      "TagContactsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "updated": {
+            "type": "integer",
+            "description": "Number of contacts whose tags changed",
+            "example": 1
           }
         }
       },

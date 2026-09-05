@@ -227,3 +227,33 @@ func (mr *MockContactRepositoryMockRecorder) UpsertContact(arg0, arg1, arg2 inte
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertContact", reflect.TypeOf((*MockContactRepository)(nil).UpsertContact), arg0, arg1, arg2)
 }
+
+// AddContactTags mocks base method (fork patch 7).
+func (m *MockContactRepository) AddContactTags(arg0 context.Context, arg1 string, arg2, arg3 []string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddContactTags", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddContactTags indicates an expected call of AddContactTags.
+func (mr *MockContactRepositoryMockRecorder) AddContactTags(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddContactTags", reflect.TypeOf((*MockContactRepository)(nil).AddContactTags), arg0, arg1, arg2, arg3)
+}
+
+// RemoveContactTags mocks base method (fork patch 7).
+func (m *MockContactRepository) RemoveContactTags(arg0 context.Context, arg1 string, arg2, arg3 []string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveContactTags", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveContactTags indicates an expected call of RemoveContactTags.
+func (mr *MockContactRepositoryMockRecorder) RemoveContactTags(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveContactTags", reflect.TypeOf((*MockContactRepository)(nil).RemoveContactTags), arg0, arg1, arg2, arg3)
+}

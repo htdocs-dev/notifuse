@@ -1,30 +1,44 @@
-import React from 'react'
-import { Input, InputNumber, DatePicker, Select, Button, Space, App, Popconfirm } from 'antd'
-import { EditOutlined } from '@ant-design/icons'
-import { useLingui } from '@lingui/react/macro'
-import type { DefaultOptionType } from 'antd/es/select'
-import { CountriesFormOptions } from '../../lib/countries_timezones'
-import { Languages } from '../../lib/languages'
-import { TIMEZONE_OPTIONS } from '../../lib/timezones'
-import { Workspace } from '../../services/api/types'
-import dayjs from '../../lib/dayjs'
-import { formatValue as sharedFormatValue } from '../../utils/formatters'
-import type { FieldType } from './fieldTypes'
+import React from "react";
+import {
+  Input,
+  InputNumber,
+  DatePicker,
+  Select,
+  Button,
+  Space,
+  App,
+  Popconfirm,
+} from "antd";
+import { isStringList } from "./stringList";
+import { TagChips } from "./TagChips";
+import { EditOutlined } from "@ant-design/icons";
+import { useLingui } from "@lingui/react/macro";
+import type { DefaultOptionType } from "antd/es/select";
+import { CountriesFormOptions } from "../../lib/countries_timezones";
+import { Languages } from "../../lib/languages";
+import { TIMEZONE_OPTIONS } from "../../lib/timezones";
+import { Workspace } from "../../services/api/types";
+import dayjs from "../../lib/dayjs";
+import { formatValue as sharedFormatValue } from "../../utils/formatters";
+import type { FieldType } from "./fieldTypes";
 
-const { TextArea } = Input
+const { TextArea } = Input;
 
 interface InlineEditableFieldProps {
-  fieldKey: string
-  fieldType: FieldType
-  label: string
-  displayLabel?: string
-  showTooltip?: boolean
-  technicalName?: string
-  value: string | number | object | null | undefined
-  workspace: Workspace
-  onSave: (fieldKey: string, value: string | number | object | null) => Promise<void>
-  isLoading?: boolean
-  disabled?: boolean
+  fieldKey: string;
+  fieldType: FieldType;
+  label: string;
+  displayLabel?: string;
+  showTooltip?: boolean;
+  technicalName?: string;
+  value: string | number | object | null | undefined;
+  workspace: Workspace;
+  onSave: (
+    fieldKey: string,
+    value: string | number | object | null,
+  ) => Promise<void>;
+  isLoading?: boolean;
+  disabled?: boolean;
 }
 
 export function InlineEditableField({
@@ -38,167 +52,174 @@ export function InlineEditableField({
   workspace,
   onSave,
   isLoading = false,
-  disabled = false
+  disabled = false,
 }: InlineEditableFieldProps) {
-  const { t } = useLingui()
-  const [isEditing, setIsEditing] = React.useState(false)
+  const { t } = useLingui();
+  const [isEditing, setIsEditing] = React.useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [editValue, setEditValue] = React.useState<any>(value)
-  const [isSaving, setIsSaving] = React.useState(false)
-  const [jsonError, setJsonError] = React.useState<string | null>(null)
-  const { message } = App.useApp()
+  const [editValue, setEditValue] = React.useState<any>(value);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [jsonError, setJsonError] = React.useState<string | null>(null);
+  const { message } = App.useApp();
 
   // Reset edit value when value prop changes
   React.useEffect(() => {
     if (!isEditing) {
-      setEditValue(value)
+      setEditValue(value);
     }
-  }, [value, isEditing])
+  }, [value, isEditing]);
 
   const handleStartEdit = () => {
     // Prepare value for editing
-    let preparedValue = value
-    if (fieldType === 'json' && value !== null && value !== undefined) {
+    let preparedValue = value;
+    if (fieldType === "json" && value !== null && value !== undefined) {
       try {
-        preparedValue = JSON.stringify(value, null, 2)
+        preparedValue = JSON.stringify(value, null, 2);
       } catch {
-        preparedValue = ''
+        preparedValue = "";
       }
-    } else if (fieldType === 'datetime' && value) {
+    } else if (fieldType === "datetime" && value) {
       // Convert string to dayjs for DatePicker
-      preparedValue = dayjs(value as string)
+      preparedValue = dayjs(value as string);
     }
-    setEditValue(preparedValue)
-    setJsonError(null)
-    setIsEditing(true)
-  }
+    setEditValue(preparedValue);
+    setJsonError(null);
+    setIsEditing(true);
+  };
 
   const handleCancel = () => {
-    setEditValue(value)
-    setJsonError(null)
-    setIsEditing(false)
-  }
+    setEditValue(value);
+    setJsonError(null);
+    setIsEditing(false);
+  };
 
   const handleSave = async () => {
     try {
-      setIsSaving(true)
-      let valueToSave = editValue
+      setIsSaving(true);
+      let valueToSave = editValue;
 
       // Handle JSON validation and parsing
-      if (fieldType === 'json') {
-        if (editValue && typeof editValue === 'string' && editValue.trim() !== '') {
+      if (fieldType === "json") {
+        if (
+          editValue &&
+          typeof editValue === "string" &&
+          editValue.trim() !== ""
+        ) {
           try {
-            valueToSave = JSON.parse(editValue)
-            setJsonError(null)
+            valueToSave = JSON.parse(editValue);
+            setJsonError(null);
           } catch {
-            setJsonError(t`Invalid JSON format`)
-            setIsSaving(false)
-            return
+            setJsonError(t`Invalid JSON format`);
+            setIsSaving(false);
+            return;
           }
         } else {
-          valueToSave = null
+          valueToSave = null;
         }
       }
 
       // Handle datetime conversion
-      if (fieldType === 'datetime' && editValue) {
+      if (fieldType === "datetime" && editValue) {
         if (editValue.$d) {
-          valueToSave = editValue.toISOString()
-        } else if (typeof editValue === 'string') {
-          valueToSave = editValue
+          valueToSave = editValue.toISOString();
+        } else if (typeof editValue === "string") {
+          valueToSave = editValue;
         }
       }
 
       // Handle empty strings as null
-      if (valueToSave === '' || valueToSave === undefined) {
-        valueToSave = null
+      if (valueToSave === "" || valueToSave === undefined) {
+        valueToSave = null;
       }
 
-      await onSave(fieldKey, valueToSave)
-      setIsEditing(false)
+      await onSave(fieldKey, valueToSave);
+      setIsEditing(false);
     } catch (error) {
-      console.error('Failed to save field:', error)
-      message.error(t`Failed to save field`)
+      console.error("Failed to save field:", error);
+      message.error(t`Failed to save field`);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleSetNull = async () => {
     try {
-      setIsSaving(true)
-      await onSave(fieldKey, null)
-      setEditValue(null)
-      setIsEditing(false)
+      setIsSaving(true);
+      await onSave(fieldKey, null);
+      setEditValue(null);
+      setIsEditing(false);
     } catch (error) {
-      console.error('Failed to clear field:', error)
-      message.error(t`Failed to clear field`)
+      console.error("Failed to clear field:", error);
+      message.error(t`Failed to clear field`);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   // Format display value
   const formatDisplayValue = () => {
-    if (value === null || value === undefined || value === '') {
-      return <span className="text-gray-400 italic">{t`Not set`}</span>
+    if (value === null || value === undefined || value === "") {
+      return <span className="text-gray-400 italic">{t`Not set`}</span>;
     }
 
-    if (fieldType === 'json') {
+    if (fieldType === "json") {
+      if (isStringList(value)) return <TagChips tags={value} />;
       try {
         return (
           <pre className="text-xs bg-gray-100 p-1 rounded m-0 max-h-20 overflow-auto">
             {JSON.stringify(value, null, 2)}
           </pre>
-        )
+        );
       } catch {
-        return String(value)
+        return String(value);
       }
     }
 
-    return sharedFormatValue(value, workspace.settings.timezone)
-  }
+    return sharedFormatValue(value, workspace.settings.timezone);
+  };
 
   // Render the appropriate input based on field type
   const renderInput = () => {
     const commonProps = {
       autoFocus: true,
       disabled: isSaving,
-      size: 'small' as const
-    }
+      size: "small" as const,
+    };
 
     switch (fieldType) {
-      case 'json':
+      case "json":
         return (
           <div className="w-full">
             <TextArea
               {...commonProps}
-              value={editValue || ''}
+              value={editValue || ""}
               onChange={(e) => {
-                setEditValue(e.target.value)
-                setJsonError(null)
+                setEditValue(e.target.value);
+                setJsonError(null);
               }}
               rows={4}
-              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+              style={{ fontFamily: "monospace", fontSize: "11px" }}
               placeholder={t`Enter JSON...`}
-              status={jsonError ? 'error' : undefined}
+              status={jsonError ? "error" : undefined}
             />
-            {jsonError && <div className="text-red-500 text-xs mt-1">{jsonError}</div>}
+            {jsonError && (
+              <div className="text-red-500 text-xs mt-1">{jsonError}</div>
+            )}
           </div>
-        )
+        );
 
-      case 'number':
+      case "number":
         return (
           <InputNumber
             {...commonProps}
             value={editValue}
             onChange={(val) => setEditValue(val)}
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             placeholder={t`Enter number...`}
           />
-        )
+        );
 
-      case 'datetime':
+      case "datetime":
         return (
           <DatePicker
             {...commonProps}
@@ -206,11 +227,11 @@ export function InlineEditableField({
             onChange={(val) => setEditValue(val)}
             showTime
             format="YYYY-MM-DD HH:mm:ss"
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
           />
-        )
+        );
 
-      case 'timezone':
+      case "timezone":
         return (
           <Select
             {...commonProps}
@@ -218,17 +239,20 @@ export function InlineEditableField({
             onChange={(val) => setEditValue(val)}
             options={TIMEZONE_OPTIONS}
             showSearch
-            filterOption={(input: string, option: DefaultOptionType | undefined) =>
-              String(option?.label ?? '')
+            filterOption={(
+              input: string,
+              option: DefaultOptionType | undefined,
+            ) =>
+              String(option?.label ?? "")
                 .toLowerCase()
                 .includes(input.toLowerCase())
             }
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             placeholder={t`Select timezone...`}
           />
-        )
+        );
 
-      case 'language':
+      case "language":
         return (
           <Select
             {...commonProps}
@@ -236,17 +260,20 @@ export function InlineEditableField({
             onChange={(val) => setEditValue(val)}
             options={Languages}
             showSearch
-            filterOption={(input: string, option: DefaultOptionType | undefined) =>
-              String(option?.label ?? '')
+            filterOption={(
+              input: string,
+              option: DefaultOptionType | undefined,
+            ) =>
+              String(option?.label ?? "")
                 .toLowerCase()
                 .includes(input.toLowerCase())
             }
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             placeholder={t`Select language...`}
           />
-        )
+        );
 
-      case 'country':
+      case "country":
         return (
           <Select
             {...commonProps}
@@ -254,43 +281,53 @@ export function InlineEditableField({
             onChange={(val) => setEditValue(val)}
             options={CountriesFormOptions}
             showSearch
-            filterOption={(input: string, option: DefaultOptionType | undefined) =>
-              String(option?.label ?? '')
+            filterOption={(
+              input: string,
+              option: DefaultOptionType | undefined,
+            ) =>
+              String(option?.label ?? "")
                 .toLowerCase()
                 .includes(input.toLowerCase())
             }
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             placeholder={t`Select country...`}
           />
-        )
+        );
 
       default:
         return (
           <Input
             {...commonProps}
-            value={editValue || ''}
+            value={editValue || ""}
             onChange={(e) => setEditValue(e.target.value)}
             placeholder={`Enter ${(label || displayLabel || fieldKey).toLowerCase()}...`}
             onPressEnter={handleSave}
           />
-        )
+        );
     }
-  }
+  };
 
-  const labelToDisplay = displayLabel || label || fieldKey
+  const labelToDisplay = displayLabel || label || fieldKey;
 
   // Edit mode
   if (isEditing) {
     return (
       <div className="py-2 px-4 bg-blue-50 border-b border-dashed border-gray-300">
-        <div className="text-xs font-semibold text-slate-600 mb-2">{labelToDisplay}</div>
+        <div className="text-xs font-semibold text-slate-600 mb-2">
+          {labelToDisplay}
+        </div>
         <div className="mb-2">{renderInput()}</div>
         <div className="flex justify-end">
           <Space size="small">
-            <Button size="small" type="link" onClick={handleCancel} disabled={isSaving}>
+            <Button
+              size="small"
+              type="link"
+              onClick={handleCancel}
+              disabled={isSaving}
+            >
               {t`Cancel`}
             </Button>
-            {value !== null && value !== undefined && value !== '' && (
+            {value !== null && value !== undefined && value !== "" && (
               <Popconfirm
                 title={t`Clear field`}
                 description={t`This will set the value to NULL. Are you sure?`}
@@ -299,12 +336,7 @@ export function InlineEditableField({
                 cancelText={t`Cancel`}
                 okButtonProps={{ danger: true }}
               >
-                <Button
-                  size="small"
-                  type="link"
-                  danger
-                  disabled={isSaving}
-                >
+                <Button size="small" type="link" danger disabled={isSaving}>
                   {t`Clear`}
                 </Button>
               </Popconfirm>
@@ -320,7 +352,7 @@ export function InlineEditableField({
           </Space>
         </div>
       </div>
-    )
+    );
   }
 
   // Display mode with hover edit icon
@@ -349,5 +381,5 @@ export function InlineEditableField({
         </div>
       )}
     </div>
-  )
+  );
 }

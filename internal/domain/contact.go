@@ -620,6 +620,8 @@ type ContactService interface {
 	// DeleteContact deletes a contact by email
 	DeleteContact(ctx context.Context, workspaceID string, email string) error
 
+	ContactTagger // fork patch 7
+
 	// BatchImportContacts imports a batch of contacts (create or update)
 	BatchImportContacts(ctx context.Context, workspaceID string, contacts []*Contact, listIDs []string) *BatchImportContactsResponse
 
@@ -649,6 +651,8 @@ type ContactRepository interface {
 
 	// DeleteContact deletes a contact
 	DeleteContact(ctx context.Context, workspaceID string, email string) error
+
+	ContactTagger // fork patch 7
 
 	// UpsertContact creates or updates a contact
 	UpsertContact(ctx context.Context, workspaceID string, contact *Contact) (bool, error)

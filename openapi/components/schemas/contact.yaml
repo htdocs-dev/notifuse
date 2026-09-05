@@ -691,6 +691,46 @@ DeleteContactRequest:
       description: Email address of the contact to delete
       example: user@example.com
 
+TagContactsRequest:
+  type: object
+  description: |
+    Adds or removes tags on contacts. Tags live in the `custom_json_1` field as a
+    flat JSON array of strings, so they can be read like any custom field and
+    matched in segments with the `in_array` operator on `custom_json_1`.
+  required:
+    - workspace_id
+    - emails
+    - tags
+  properties:
+    workspace_id:
+      type: string
+      description: The ID of the workspace
+      example: ws_1234567890
+    emails:
+      type: array
+      description: Contacts to change (1 to 1000 addresses)
+      items:
+        type: string
+        format: email
+      example: [user@example.com]
+    tags:
+      type: array
+      description: Tags to add or remove
+      items:
+        type: string
+      example: [customer, vip]
+
+TagContactsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+      example: true
+    updated:
+      type: integer
+      description: Number of contacts whose tags changed
+      example: 1
+
 BatchImportContactsRequest:
   type: object
   required:
