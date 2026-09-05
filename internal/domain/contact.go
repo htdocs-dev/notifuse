@@ -680,6 +680,12 @@ type ContactRepository interface {
 	// 'complained', or has been soft-deleted. The track_contact_list_changes
 	// trigger emits the corresponding list.bounced timeline rows.
 	MarkEmailsAsBounced(ctx context.Context, workspaceID string, emails []string, at time.Time) error
+
+	// MarkEmailsAsComplained flips contact_lists.status to 'complained' for every
+	// list each given email is on, except where the row is already 'bounced' or
+	// 'complained', or has been soft-deleted. The track_contact_list_changes
+	// trigger emits the corresponding list.complained timeline rows.
+	MarkEmailsAsComplained(ctx context.Context, workspaceID string, emails []string, at time.Time) error
 }
 
 // FromJSON parses JSON data into a Contact struct

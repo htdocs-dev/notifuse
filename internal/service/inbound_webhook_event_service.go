@@ -329,6 +329,7 @@ func (s *InboundWebhookEventService) ProcessWebhook(ctx context.Context, workspa
 	updates := []domain.MessageEventUpdate{}
 	var hardEmails []string
 	var softCountEmails []string
+	var complainedEmails []string
 
 	for _, event := range events {
 		switch event.Type {
@@ -379,6 +380,14 @@ func (s *InboundWebhookEventService) ProcessWebhook(ctx context.Context, workspa
 			}
 
 		case domain.EmailEventComplaint:
+			// A complaint is a terminal signal for the recipient, like a hard bounce:
+			// the mail-box provider has told us this person does not want our mail,
+			// and sending again is what pushes the complaint rate over the 0.3 %
+			// Gmail and Yahoo enforce. Marking only the message left the contact
+			// active on every list.
+			if event.RecipientEmail != "" {
+				complainedEmails = append(complainedEmails, event.RecipientEmail)
+			}
 			if event.MessageID != nil && *event.MessageID != "" {
 				reason := event.ComplaintFeedbackType
 				if len(reason) > 255 {
@@ -423,6 +432,15 @@ func (s *InboundWebhookEventService) ProcessWebhook(ctx context.Context, workspa
 			tracing.MarkSpanError(ctx, err)
 			// codecov:ignore:end
 			return fmt.Errorf("failed to mark emails as bounced: %w", err)
+		}
+	}
+
+	if len(complainedEmails) > 0 {
+		if err := s.contactRepo.MarkEmailsAsComplained(ctx, workspaceID, dedupeStrings(complainedEmails), time.Now().UTC()); err != nil {
+			// codecov:ignore:start
+			tracing.MarkSpanError(ctx, err)
+			// codecov:ignore:end
+			return fmt.Errorf("failed to mark emails as complained: %w", err)
 		}
 	}
 

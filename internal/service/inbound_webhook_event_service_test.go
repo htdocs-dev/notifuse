@@ -2389,6 +2389,9 @@ func TestProcessWebhook_AdditionalScenarios(t *testing.T) {
 				return nil
 			})
 
+		// A complaint suppresses the contact on every list, like a hard bounce.
+		contactRepo.EXPECT().MarkEmailsAsComplained(gomock.Any(), workspaceID, []string{"test@example.com"}, gomock.Any()).Return(nil)
+
 		// Call method
 		err = service.ProcessWebhook(context.Background(), workspaceID, integrationID, rawPayload)
 		assert.NoError(t, err)

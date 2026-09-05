@@ -1854,8 +1854,24 @@ func (r *contactRepository) GetBatchForSegment(ctx context.Context, workspaceID 
 // 'bounced') or soft-deleted. The track_contact_list_changes trigger emits the
 // matching list.bounced timeline rows for transitions.
 func (r *contactRepository) MarkEmailsAsBounced(ctx context.Context, workspaceID string, emails []string, at time.Time) error {
+	return r.markEmailsAsTerminalListStatus(ctx, workspaceID, emails, domain.ContactListStatusBounced, at)
+}
+
+// MarkEmailsAsComplained is the complaint counterpart of MarkEmailsAsBounced:
+// same guards, status 'complained', list.complained timeline rows.
+func (r *contactRepository) MarkEmailsAsComplained(ctx context.Context, workspaceID string, emails []string, at time.Time) error {
+	return r.markEmailsAsTerminalListStatus(ctx, workspaceID, emails, domain.ContactListStatusComplained, at)
+}
+
+// markEmailsAsTerminalListStatus moves every non-terminal, non-deleted list row
+// of the given emails to one terminal status. Rows already 'bounced' or
+// 'complained' are left alone so the first terminal signal wins.
+func (r *contactRepository) markEmailsAsTerminalListStatus(ctx context.Context, workspaceID string, emails []string, status domain.ContactListStatus, at time.Time) error {
 	if len(emails) == 0 {
 		return nil
+	}
+	if !domain.IsTerminalContactListStatus(status) {
+		return fmt.Errorf("status %q is not a terminal contact list status", status)
 	}
 
 	workspaceDB, err := r.workspaceRepo.GetConnection(ctx, workspaceID)
@@ -1863,16 +1879,19 @@ func (r *contactRepository) MarkEmailsAsBounced(ctx context.Context, workspaceID
 		return fmt.Errorf("failed to get workspace connection: %w", err)
 	}
 
-	const query = `
+	// The status is interpolated, not bound: it is one of two constants checked
+	// above, and keeping the literal in the SQL keeps the existing tests' regexes
+	// (and the planner's view of the statement) unchanged for the bounced path.
+	query := fmt.Sprintf(`
 UPDATE contact_lists
-   SET status = 'bounced',
+   SET status = '%s',
        updated_at = $2
  WHERE email = ANY($1)
    AND status NOT IN ('complained', 'bounced')
-   AND deleted_at IS NULL`
+   AND deleted_at IS NULL`, status)
 
 	if _, err := workspaceDB.ExecContext(ctx, query, pq.Array(emails), at); err != nil {
-		return fmt.Errorf("failed to mark emails as bounced: %w", err)
+		return fmt.Errorf("failed to mark emails as %s: %w", status, err)
 	}
 
 	return nil

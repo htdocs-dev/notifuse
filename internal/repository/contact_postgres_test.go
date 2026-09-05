@@ -2603,3 +2603,35 @@ func TestCreateContactIfAbsent(t *testing.T) {
 		assert.False(t, created)
 	})
 }
+
+func TestMarkEmailsAsComplained_FlipsActiveLists(t *testing.T) {
+	db, mock, cleanup := setupMockDB(t)
+	defer cleanup()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	workspaceRepo := mocks.NewMockWorkspaceRepository(ctrl)
+	workspaceRepo.EXPECT().GetConnection(gomock.Any(), "ws-123").Return(db, nil)
+
+	repo := NewContactRepository(workspaceRepo)
+	at := time.Date(2026, 9, 5, 10, 0, 0, 0, time.UTC)
+
+	// Same guards as the bounced path: terminal rows and soft-deleted rows are left alone.
+	mock.ExpectExec(`UPDATE contact_lists\s+SET status = 'complained',\s+updated_at = \$2\s+WHERE email = ANY\(\$1\)\s+AND status NOT IN \('complained', 'bounced'\)\s+AND deleted_at IS NULL`).
+		WithArgs(sqlmock.AnyArg(), at).
+		WillReturnResult(sqlmock.NewResult(0, 2))
+
+	err := repo.MarkEmailsAsComplained(context.Background(), "ws-123", []string{"a@example.com"}, at)
+	require.NoError(t, err)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestMarkEmailsAsComplained_NoEmailsIsNoop(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// No connection is fetched and no statement runs for an empty batch.
+	repo := NewContactRepository(mocks.NewMockWorkspaceRepository(ctrl))
+	require.NoError(t, repo.MarkEmailsAsComplained(context.Background(), "ws-123", nil, time.Now()))
+}
