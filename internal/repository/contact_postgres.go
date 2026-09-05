@@ -309,26 +309,13 @@ func (r *contactRepository) GetContacts(ctx context.Context, req *domain.GetCont
 		sb = sb.Where(sq.Expr(existsClause, args...))
 	}
 
-	// Use EXISTS subquery for segments filter
+	// Segments are evaluated live from their stored SQL (see segment_dynamic.go)
 	if len(req.Segments) > 0 {
-		// Build the placeholder string for the IN clause using ? placeholders
-		// Squirrel will convert these to the correct $N placeholders
-		placeholders := make([]string, len(req.Segments))
-		for i := range placeholders {
-			placeholders[i] = "?"
+		segmentExpr, err := segmentMembershipExpr(ctx, db, req.Segments)
+		if err != nil {
+			return nil, err
 		}
-		placeholdersStr := strings.Join(placeholders, ",")
-
-		// Build the EXISTS clause with ? placeholders
-		existsClause := fmt.Sprintf("EXISTS (SELECT 1 FROM contact_segments cs JOIN segments s ON cs.segment_id = s.id WHERE cs.email = c.email AND cs.segment_id IN (%s))", placeholdersStr)
-
-		// Convert []string to []interface{} for sq.Expr
-		args := make([]interface{}, len(req.Segments))
-		for i, seg := range req.Segments {
-			args[i] = seg
-		}
-
-		sb = sb.Where(sq.Expr(existsClause, args...))
+		sb = sb.Where(segmentExpr)
 	}
 
 	if req.Cursor != "" {
@@ -1483,22 +1470,20 @@ func (r *contactRepository) GetContactsForBroadcast(
 		}
 	}
 
-	// Handle segments filtering
+	// Segments are evaluated live from their stored SQL (see segment_dynamic.go).
+	// With a list, contacts must be in the list AND in one of the segments.
 	if len(audience.Segments) > 0 {
-		// If we already have list filtering, we need to add segments as an additional filter
-		// This means contacts must be in BOTH the specified list AND segments
+		segmentExpr, err := segmentMembershipExpr(ctx, db, audience.Segments)
+		if err != nil {
+			return nil, err
+		}
 		if audience.List != "" {
-			// Join with contact_segments table in addition to the existing list joins
-			query = query.Join("contact_segments cs ON c.email = cs.email")
-			query = query.Where(sq.Eq{"cs.segment_id": audience.Segments})
+			query = query.Where(segmentExpr)
 		} else {
-			// No list filtering, so we're filtering by segments only
-			// We need to select from contacts and join with contact_segments
 			includeListID = false
 			query = psql.Select(contactColumnsWithPrefix("c")...).
 				From("contacts c").
-				Join("contact_segments cs ON c.email = cs.email").
-				Where(sq.Eq{"cs.segment_id": audience.Segments}).
+				Where(segmentExpr).
 				Limit(uint64(limit)).
 				OrderBy("c.email ASC") // Sort by email only (unique, deterministic)
 
@@ -1755,20 +1740,16 @@ func (r *contactRepository) CountContactsForBroadcast(
 		})
 	}
 
-	// Handle segments filtering
+	// Segments are evaluated live from their stored SQL (see segment_dynamic.go)
 	if len(audience.Segments) > 0 {
-		// If we already have list filtering, we need to add segments as an additional filter
-		// This means contacts must be in BOTH the specified list AND segments
+		segmentExpr, err := segmentMembershipExpr(ctx, db, audience.Segments)
+		if err != nil {
+			return 0, err
+		}
 		if audience.List != "" {
-			// Join with contact_segments table in addition to the existing list joins
-			query = query.Join("contact_segments cs ON c.email = cs.email")
-			query = query.Where(sq.Eq{"cs.segment_id": audience.Segments})
+			query = query.Where(segmentExpr)
 		} else {
-			// No list filtering, so we're filtering by segments only
-			query = psql.Select("COUNT(*)").
-				From("contacts c").
-				Join("contact_segments cs ON c.email = cs.email").
-				Where(sq.Eq{"cs.segment_id": audience.Segments})
+			query = psql.Select("COUNT(*)").From("contacts c").Where(segmentExpr)
 		}
 	}
 

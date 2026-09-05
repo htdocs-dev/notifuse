@@ -46,7 +46,7 @@ func NewContactSegmentQueueProcessor(
 		workspaceRepo: workspaceRepo,
 		queryBuilder:  NewQueryBuilder(),
 		logger:        logger,
-		batchSize:     100, // Process up to 100 contacts at a time
+		batchSize:     1000, // 1000 per 50 s run so live-edit queues drain fast (fork patch 5)
 	}
 }
 

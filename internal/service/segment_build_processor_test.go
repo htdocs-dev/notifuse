@@ -65,7 +65,7 @@ func TestNewSegmentBuildProcessor(t *testing.T) {
 	assert.NotNil(t, processor.workspaceRepo)
 	assert.NotNil(t, processor.queryBuilder)
 	assert.NotNil(t, processor.logger)
-	assert.Equal(t, 100, processor.batchSize)
+	assert.Equal(t, 1000, processor.batchSize)
 }
 
 func TestSegmentBuildProcessor_CanProcess(t *testing.T) {
@@ -396,7 +396,7 @@ func TestSegmentBuildProcessor_Process_NoContacts(t *testing.T) {
 		Return(0, nil)
 
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(0), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(0), 1000).
 		Return([]string{}, nil)
 
 	// RemoveOldMemberships should NOT be called when there are 0 matches
@@ -455,7 +455,7 @@ func TestSegmentBuildProcessor_Process_GetBatchError(t *testing.T) {
 		Return(100, nil)
 
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(0), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(0), 1000).
 		Return(nil, errors.New("db error"))
 
 	completed, err := processor.Process(ctx, task, timeoutAt)
@@ -513,7 +513,7 @@ func TestSegmentBuildProcessor_Process_StateInitialization(t *testing.T) {
 		Return(0, nil)
 
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(0), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(0), 1000).
 		Return([]string{}, nil)
 
 	// RemoveOldMemberships should NOT be called when there are 0 matches
@@ -523,7 +523,7 @@ func TestSegmentBuildProcessor_Process_StateInitialization(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify state was initialized
-	assert.Equal(t, 100, task.State.BuildSegment.BatchSize)
+	assert.Equal(t, 1000, task.State.BuildSegment.BatchSize)
 	assert.NotEmpty(t, task.State.BuildSegment.StartedAt)
 	assert.Equal(t, int64(5), task.State.BuildSegment.Version) // Should use segment's version
 }
@@ -577,7 +577,7 @@ func TestSegmentBuildProcessor_Process_ZeroMatchedContacts(t *testing.T) {
 		Return(100, nil)
 
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(0), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(0), 1000).
 		Return([]string{}, nil)
 
 	// RemoveOldMemberships should NOT be called when there are 0 matches
@@ -648,11 +648,11 @@ func TestSegmentBuildProcessor_Process_RemoveMembershipsError(t *testing.T) {
 		Return(1, nil)
 
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(0), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(0), 1000).
 		Return([]string{"test@test.com"}, nil)
 
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(1), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(1), 1000).
 		Return([]string{}, nil)
 
 	mockWorkspaceRepo.EXPECT().
@@ -734,11 +734,11 @@ func TestSegmentBuildProcessor_Process_FinalStatusUpdateError(t *testing.T) {
 		Return(1, nil)
 
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(0), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(0), 1000).
 		Return([]string{"test@test.com"}, nil)
 
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(1), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(1), 1000).
 		Return([]string{}, nil)
 
 	mockWorkspaceRepo.EXPECT().
@@ -1109,12 +1109,12 @@ func TestSegmentBuildProcessor_Process_SuccessfulCompletion(t *testing.T) {
 
 	// First batch returns one email
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(0), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(0), 1000).
 		Return([]string{"test@test.com"}, nil)
 
 	// Second batch returns empty (done)
 	mockContactRepo.EXPECT().
-		GetBatchForSegment(ctx, "workspace1", int64(1), 100).
+		GetBatchForSegment(ctx, "workspace1", int64(1), 1000).
 		Return([]string{}, nil)
 
 	mockWorkspaceRepo.EXPECT().

@@ -38,7 +38,7 @@ func TestNewContactSegmentQueueProcessor(t *testing.T) {
 	assert.NotNil(t, processor.workspaceRepo)
 	assert.NotNil(t, processor.queryBuilder)
 	assert.NotNil(t, processor.logger)
-	assert.Equal(t, 100, processor.batchSize)
+	assert.Equal(t, 1000, processor.batchSize)
 }
 
 func TestContactSegmentQueueProcessor_ProcessQueue_GetConnectionError(t *testing.T) {

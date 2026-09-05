@@ -83,3 +83,57 @@ the winning (or only) template. Nothing is sent until the draft is scheduled.
   `text-white` pinned to `#ffffff`. `SetupWizard.tsx`: logo class.
 - Known gaps: inline hex colours in charts, automation nodes and the email builder
   chrome still render their light values. Fix them file by file as they annoy you.
+
+### 5. Dynamic segments and faster segment builds
+
+Broadcast audiences and the contacts search used to read `contact_segments`,
+which the build task fills 100 contacts at a time, so a new segment was empty
+for hours on a large workspace. Now they run the segment's stored SQL inline.
+
+- `internal/repository/segment_dynamic.go` (new): `segmentMembershipExpr` loads
+  `generated_sql` / `generated_args` for the segment IDs, rewrites `$n` to
+  squirrel `?` and returns `c.email IN (<segment sql>)` OR-ed across segments.
+  A segment with no generated SQL falls back to its `contact_segments` rows.
+  Hooks: three `if len(...Segments) > 0` blocks in `contact_postgres.go`
+  (`GetContacts`, `GetContactsForBroadcast`, `CountContactsForBroadcast`).
+  `contact_segments` still feeds automations, the per-contact chips and the
+  segment page counts.
+- Batch size 100 → 1000 in `segment_build_processor.go`,
+  `contact_segment_queue_processor.go` and the three task states in
+  `segment_service.go`. The queue task still runs 50 s per minute, so a
+  workspace drains about 1000 queued contacts a minute instead of 100.
+
+### 6. Teal accent instead of purple
+
+- `console/src/theme.ts`: `colorPrimary` / `colorLink` `#0D9488` light,
+  `#2DD4BF` dark. `console/src/index.css`: `--primary`, `--color-primary`, and
+  the `a` / `a:hover` colours follow. `BaseNode.tsx` and `WorkspaceLayout.tsx`
+  use `var(--primary)` instead of literals; `web_analytics/lib/types.ts`
+  `PRIMARY_COLOR` follows.
+- `pages/ContactsPage.tsx`: the unsubscribed list chip uses antd's `default`
+  colour (`gray` is not a preset and rendered as a white block in dark mode).
+
+### 7. Contact tags
+
+Tags are a flat JSON array of strings in `custom_json_1`
+(`domain.ContactTagsField`). No schema change: the API reads and writes them as
+a custom field, and segments match them with `in_array` on that field.
+
+- `internal/domain/contact_tags.go` (new): `ContactTagsField`,
+  `TagContactsRequest`, `ContactTagger` interface. Hook: `ContactTagger`
+  embedded in `ContactRepository` and `ContactService` in `contact.go`.
+- `internal/repository/contact_tags_postgres.go` (new): `AddContactTags`
+  (sorted union, skips contacts that already have every tag) and
+  `RemoveContactTags`, both one `UPDATE ... WHERE email = ANY($1)`.
+- `internal/service/contact_tags.go` (new): contacts:write check, then the
+  repository.
+- `internal/http/contact_tags_handler.go` (new): `POST /api/contacts.tag` and
+  `/api/contacts.untag`, body `{workspace_id, emails[], tags[]}`, reply
+  `{success, updated}`. Hook: two route lines in `contact_handler.go`.
+- Mocks: `mock_contact_repository.go`, `mock_contact_service.go`.
+- Console: `components/contacts/TagChips.tsx` + `stringList.ts` (new); a JSON
+  field that is a list of strings renders as chips in the contacts table
+  (`JsonViewer`) and the contact drawer (`InlineEditableField`). Label the
+  field "Tags" in workspace settings → custom field labels.
+- `openapi/paths/contacts.yaml`, `openapi/components/schemas/contact.yaml`,
+  `openapi/openapi.yaml`, bundled into `openapi.json`.

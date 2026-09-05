@@ -14,6 +14,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/mock/gomock"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -1181,8 +1182,13 @@ func TestGetContacts(t *testing.T) {
 		)
 
 		// Match the query using a regex pattern that includes the EXISTS subquery for segments
-		mock.ExpectQuery(`SELECT `+contactColumnsPattern+` FROM contacts c WHERE EXISTS \(SELECT 1 FROM contact_segments cs JOIN segments s ON cs\.segment_id = s\.id WHERE cs\.email = c\.email AND cs\.segment_id IN \(\$1,\$2\)\) ORDER BY c\.created_at DESC, c\.email ASC LIMIT 11`).
-			WithArgs("segment123", "segment456").
+		mock.ExpectQuery(`SELECT id, generated_sql, generated_args FROM segments WHERE id = ANY\(\$1\)`).
+			WithArgs(pq.Array([]string{"segment123", "segment456"})).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "generated_sql", "generated_args"}).
+				AddRow("segment123", "SELECT email FROM contacts WHERE country = $1", []byte(`["FR"]`)).
+				AddRow("segment456", nil, nil))
+		mock.ExpectQuery(`SELECT `+contactColumnsPattern+` FROM contacts c WHERE \(c\.email IN \(SELECT email FROM contacts WHERE country = \$1\) OR EXISTS \(SELECT 1 FROM contact_segments cs WHERE cs\.email = c\.email AND cs\.segment_id = ANY\(\$2\)\)\) ORDER BY c\.created_at DESC, c\.email ASC LIMIT 11`).
+			WithArgs("FR", pq.Array([]string{"segment456"})).
 			WillReturnRows(rows)
 
 		// Set up expectations for the contact lists query
@@ -1272,8 +1278,12 @@ func TestGetContacts(t *testing.T) {
 
 		// Match the query using a regex pattern that includes the EXISTS subquery for a single segment
 		// Note: Squirrel generates IN ($1) even for single values
-		mock.ExpectQuery(`SELECT ` + contactColumnsPattern + ` FROM contacts c WHERE EXISTS \(SELECT 1 FROM contact_segments cs JOIN segments s ON cs\.segment_id = s\.id WHERE cs\.email = c\.email AND cs\.segment_id IN \(\$1\)\) ORDER BY c\.created_at DESC, c\.email ASC LIMIT 11`).
-			WithArgs("segment123").
+		mock.ExpectQuery(`SELECT id, generated_sql, generated_args FROM segments WHERE id = ANY\(\$1\)`).
+			WithArgs(pq.Array([]string{"segment123"})).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "generated_sql", "generated_args"}).
+				AddRow("segment123", "SELECT email FROM contacts WHERE country = $1", []byte(`["FR"]`)))
+		mock.ExpectQuery(`SELECT ` + contactColumnsPattern + ` FROM contacts c WHERE \(c\.email IN \(SELECT email FROM contacts WHERE country = \$1\)\) ORDER BY c\.created_at DESC, c\.email ASC LIMIT 11`).
+			WithArgs("FR").
 			WillReturnRows(rows)
 
 		// Set up expectations for the contact lists query
@@ -1578,8 +1588,12 @@ func TestGetContactsForBroadcast(t *testing.T) {
 				nil, nil, nil, nil, nil, createdAt2, createdAt2, createdAt2, createdAt2)
 
 		// Expect the query to join contacts with contact_segments (cursor-based pagination)
-		mock.ExpectQuery(`SELECT ` + contactColumnsPattern + ` FROM contacts c JOIN contact_segments cs ON c\.email = cs\.email WHERE cs\.segment_id IN \(\$1\) ORDER BY c\.email ASC LIMIT 10`).
-			WithArgs("segment1").
+		mock.ExpectQuery(`SELECT id, generated_sql, generated_args FROM segments WHERE id = ANY\(\$1\)`).
+			WithArgs(pq.Array([]string{"segment1"})).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "generated_sql", "generated_args"}).
+				AddRow("segment1", "SELECT email FROM contacts WHERE country = $1", []byte(`["FR"]`)))
+		mock.ExpectQuery(`SELECT ` + contactColumnsPattern + ` FROM contacts c WHERE \(c\.email IN \(SELECT email FROM contacts WHERE country = \$1\)\) ORDER BY c\.email ASC LIMIT 10`).
+			WithArgs("FR").
 			WillReturnRows(rows)
 
 		// Call the method being tested (empty string for first batch cursor)
@@ -1820,8 +1834,13 @@ func TestCountContactsForBroadcast(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"count"}).AddRow(42)
 
 		// Expect query with JOIN for segment filtering
-		mock.ExpectQuery(`SELECT COUNT\(\*\) FROM contacts c JOIN contact_segments cs ON c\.email = cs\.email WHERE cs\.segment_id IN \(\$1,\$2\)`).
-			WithArgs("segment1", "segment2").
+		mock.ExpectQuery(`SELECT id, generated_sql, generated_args FROM segments WHERE id = ANY\(\$1\)`).
+			WithArgs(pq.Array([]string{"segment1", "segment2"})).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "generated_sql", "generated_args"}).
+				AddRow("segment1", "SELECT email FROM contacts WHERE country = $1", []byte(`["FR"]`)).
+				AddRow("segment2", "SELECT email FROM contacts WHERE country = $1", []byte(`["FR"]`)))
+		mock.ExpectQuery(`SELECT COUNT\(\*\) FROM contacts c WHERE \(c\.email IN \(SELECT email FROM contacts WHERE country = \$1\) OR c\.email IN \(SELECT email FROM contacts WHERE country = \$2\)\)`).
+			WithArgs("FR", "FR").
 			WillReturnRows(rows)
 
 		// Call the method being tested
@@ -1858,14 +1877,18 @@ func TestCountContactsForBroadcast(t *testing.T) {
 
 		// Expect query with JOINs for both list, lists table (for soft-delete filter), segment filtering,
 		// and the double opt-in guard (l.is_double_optin = $5 OR cl.status <> $6).
-		mock.ExpectQuery(`SELECT COUNT\(\*\) FROM contacts c JOIN contact_lists cl ON c\.email = cl\.email JOIN lists l ON cl\.list_id = l\.id JOIN contact_segments cs ON c\.email = cs\.email WHERE cl\.list_id = \$1 AND l\.deleted_at IS NULL AND cl\.status <> \$2 AND cl\.status <> \$3 AND cl\.status <> \$4 AND \(l\.is_double_optin = \$5 OR cl\.status <> \$6\) AND cs\.segment_id IN \(\$7\)`).
+		mock.ExpectQuery(`SELECT id, generated_sql, generated_args FROM segments WHERE id = ANY\(\$1\)`).
+			WithArgs(pq.Array([]string{"segment1"})).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "generated_sql", "generated_args"}).
+				AddRow("segment1", "SELECT email FROM contacts WHERE country = $1", []byte(`["FR"]`)))
+		mock.ExpectQuery(`SELECT COUNT\(\*\) FROM contacts c JOIN contact_lists cl ON c\.email = cl\.email JOIN lists l ON cl\.list_id = l\.id WHERE cl\.list_id = \$1 AND l\.deleted_at IS NULL AND cl\.status <> \$2 AND cl\.status <> \$3 AND cl\.status <> \$4 AND \(l\.is_double_optin = \$5 OR cl\.status <> \$6\) AND \(c\.email IN \(SELECT email FROM contacts WHERE country = \$7\)\)`).
 			WithArgs("list1",
 				domain.ContactListStatusUnsubscribed,
 				domain.ContactListStatusBounced,
 				domain.ContactListStatusComplained,
 				false,
 				domain.ContactListStatusPending,
-				"segment1").
+				"FR").
 			WillReturnRows(rows)
 
 		// Call the method being tested

@@ -37,7 +37,7 @@ func NewSegmentBuildProcessor(
 		workspaceRepo: workspaceRepo,
 		queryBuilder:  NewQueryBuilder(),
 		logger:        logger,
-		batchSize:     100, // Process 100 contacts at a time, allows frequent version checks
+		batchSize:     1000, // 1000 per batch: one segment build round trip per 1000 contacts (fork patch 5)
 	}
 }
 
