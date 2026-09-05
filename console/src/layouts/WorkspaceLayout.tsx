@@ -19,6 +19,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../contexts/AuthContext'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { ThemeSwitcher } from '../components/ThemeSwitcher'
 import { Workspace, UserPermissions } from '../services/api/types'
 import { ContactsCsvUploadProvider } from '../components/contacts/ContactsCsvUploadProvider'
 import { useState, useEffect } from 'react'
@@ -486,7 +487,7 @@ export function WorkspaceLayout() {
 
   return (
     <ContactsCsvUploadProvider>
-      <Layout style={{ minHeight: '100vh', backgroundColor: '#F9F9F9' }}>
+      <Layout style={{ minHeight: '100vh', backgroundColor: 'var(--nf-surface)' }}>
         <Layout>
           <Sider
             width={250}
@@ -502,7 +503,7 @@ export function WorkspaceLayout() {
               // scroll, or the logo and the collapse button travel with it.
               overflow: 'hidden',
               zIndex: 10,
-              backgroundColor: '#F9F9F9'
+              backgroundColor: 'var(--nf-surface)'
             }}
             collapsible
             collapsed={collapsed}
@@ -514,12 +515,13 @@ export function WorkspaceLayout() {
                 flex: '0 0 auto',
                 padding: '16px 0 16px 27px',
                 textAlign: 'center',
-                borderBottom: '1px solid #f0f0f0'
+                borderBottom: '1px solid var(--nf-border)'
               }}
             >
               <img
                 src={collapsed ? '/console/icon.png' : '/console/logo.png'}
                 alt=""
+                className="workspace-logo"
                 style={{
                   height: '31px',
                   width: 'auto',
@@ -535,7 +537,7 @@ export function WorkspaceLayout() {
                 onOpenChange={handleOpenChange}
                 style={{
                   borderRight: 0,
-                  backgroundColor: '#F9F9F9',
+                  backgroundColor: 'var(--nf-surface)',
                   fontSize: '13px',
                   // Item labels are <Link> anchors, which index.css pins to 500.
                   // Submenu titles are plain text and inherit this instead, so it
@@ -550,8 +552,8 @@ export function WorkspaceLayout() {
               style={{
                 flex: '0 0 auto',
                 padding: '16px',
-                borderTop: '1px solid #f0f0f0',
-                backgroundColor: '#F9F9F9'
+                borderTop: '1px solid var(--nf-border)',
+                backgroundColor: 'var(--nf-surface)'
               }}
             >
               <div
@@ -582,8 +584,8 @@ export function WorkspaceLayout() {
               right: 0,
               width: `calc(100% - ${collapsed ? '80px' : '250px'})`,
               height: '64px',
-              backgroundColor: '#F9F9F9',
-              borderBottom: '1px solid #f0f0f0',
+              backgroundColor: 'var(--nf-surface)',
+              borderBottom: '1px solid var(--nf-border)',
               padding: '0 24px',
               display: 'flex',
               alignItems: 'center',
@@ -681,6 +683,7 @@ export function WorkspaceLayout() {
                   {t`Help`}
                 </Button>
               </Dropdown>
+              <ThemeSwitcher />
               <LanguageSwitcher />
               <Dropdown
                 menu={{
@@ -716,10 +719,10 @@ export function WorkspaceLayout() {
               marginTop: withBannerOffset('64px'),
               padding: isSettingsPage ? '0' : '24px',
               transition: 'margin-left 0.2s',
-              backgroundColor: '#F9F9F9'
+              backgroundColor: 'var(--nf-surface)'
             }}
           >
-            <Content style={{ backgroundColor: '#F9F9F9' }}>
+            <Content style={{ backgroundColor: 'var(--nf-surface)' }}>
               <FileManagerProvider
                 key={`fm-${workspaceId}-${!userPermissions?.templates?.write}`}
                 settings={workspaces.find((w) => w.id === workspaceId)?.settings.file_manager}

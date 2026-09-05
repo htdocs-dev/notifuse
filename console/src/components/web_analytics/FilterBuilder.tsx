@@ -246,7 +246,7 @@ function FilterPicker(props: {
               onClick={() => setOperator(candidate)}
               className={
                 candidate === operator
-                  ? 'rounded bg-[var(--primary)] px-2 py-0.5 text-xs text-white'
+                  ? 'rounded bg-[var(--primary)] px-2 py-0.5 text-xs text-[#ffffff]'
                   : 'rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-200'
               }
             >
@@ -303,7 +303,7 @@ function FilterPicker(props: {
               onClick={() => setOperator(candidate)}
               className={
                 candidate === operator
-                  ? 'rounded bg-[var(--primary)] px-2 py-0.5 text-xs text-white'
+                  ? 'rounded bg-[var(--primary)] px-2 py-0.5 text-xs text-[#ffffff]'
                   : 'rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-200'
               }
             >

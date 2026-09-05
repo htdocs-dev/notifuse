@@ -64,3 +64,22 @@ the winning (or only) template. Nothing is sent until the draft is scheduled.
 - Console: `services/api/broadcast.ts` (`resendToNonOpeners`) and a button in
   `pages/BroadcastsPage.tsx`.
 - `openapi/paths/broadcasts.yaml` + `openapi/components/schemas/broadcast.yaml`, bundled into `openapi.json` with `make openapi-bundle`.
+
+### 4. Dark mode in the console
+
+- `console/src/themeMode.ts` (new): mode light/dark/system, localStorage key
+  `notifuse_theme`, stamps `data-theme` on `<html>`.
+- `console/src/contexts/ThemeContext.tsx` (new) and
+  `console/src/components/ThemeSwitcher.tsx` (new): provider and the header button.
+- `console/src/theme.ts` (new): the Ant Design theme, moved out of `App.tsx`, picks
+  `darkAlgorithm` from the resolved theme. Hooks in `App.tsx`: `ThemeProvider` around
+  `LocaleProvider`, `useTheme` in `AppContent`.
+- `console/src/index.css`: `@custom-variant dark` on `data-theme`, `--nf-surface` /
+  `--nf-border` variables, and a `:root[data-theme="dark"]` block that reverses the
+  Tailwind grey scale and remaps `--color-white`. This is what turns every hard-coded
+  `text-gray-500` / `bg-gray-50` / `bg-white` dark without editing components.
+- `WorkspaceLayout.tsx`: the `#F9F9F9` / `#f0f0f0` literals became the two variables;
+  the logo gets class `workspace-logo` (inverted in dark). `FilterBuilder.tsx`: two
+  `text-white` pinned to `#ffffff`. `SetupWizard.tsx`: logo class.
+- Known gaps: inline hex colours in charts, automation nodes and the email builder
+  chrome still render their light values. Fix them file by file as they annoy you.

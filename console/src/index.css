@@ -1,20 +1,29 @@
 @import "tailwindcss";
 @import "./components/email_builder/editor.css";
 @import "./styles/reactflow.css";
+/* Dark mode is a choice, not the OS: ThemeContext stamps data-theme on <html>
+   (light, dark, or the OS answer when "system" is picked). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
   --color-primary: #7763f1;
 }
 
+/* Light palette. Every surface colour the console paints comes from here or
+   from Tailwind's --color-* scale, so the dark block below can swap them all
+   without touching components. */
 :root {
   --background: rgb(243, 246, 252);
   --foreground: #171717;
   --primary: #7763f1;
+  --nf-surface: #f9f9f9;
+  --nf-border: #f0f0f0;
 
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: light;
   color: rgba(255, 255, 255, 0.87);
   background-color: var(--background);
 
@@ -22,6 +31,45 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark palette: blue-biased greys so the purple accent still reads as chosen.
+   The Tailwind grey scale is reversed, which turns every hard-coded
+   text-gray-500 / bg-gray-50 / border-gray-200 in the components into its dark
+   counterpart. White is remapped to the surface colour because bg-white marks
+   panels; text-white sits on coloured fills and is pinned to #fff where used. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0f141a;
+  --foreground: #e6ebf0;
+  --primary: #8b7cf3;
+  --color-primary: #8b7cf3;
+  --nf-surface: #161c23;
+  --nf-border: #2a333d;
+
+  --color-white: #161c23;
+  --color-gray-50: #1b222b;
+  --color-gray-100: #212a34;
+  --color-gray-200: #2e3945;
+  --color-gray-300: #3d4956;
+  --color-gray-400: #7f8c9a;
+  --color-gray-500: #9daab6;
+  --color-gray-600: #b7c2cc;
+  --color-gray-700: #d0d8df;
+  --color-gray-800: #e3e8ed;
+  --color-gray-900: #eef2f5;
+  --color-gray-950: #f7f9fb;
+  --color-slate-500: #9aa8b8;
+  --color-slate-600: #b3bfcc;
+  --color-slate-700: #cbd5e0;
+  --color-slate-900: #edf1f5;
+}
+
+/* The logo is navy on transparent, so it disappears on the dark surface.
+   Invert then rotate the hue: the wordmark turns near-white and the pink dot
+   stays warm instead of going green. */
+:root[data-theme="dark"] .workspace-logo {
+  filter: invert(1) hue-rotate(180deg);
 }
 
 a {
@@ -53,10 +101,10 @@ h1 {
  * content shows through underneath. */
 td.ant-table-cell.contacts-fixed-col,
 th.ant-table-cell.contacts-fixed-col {
-  background-color: #F9F9F9;
+  background-color: var(--nf-surface);
 }
 .ant-table-tbody > tr:hover > td.ant-table-cell.contacts-fixed-col {
-  background-color: #F9F9F9;
+  background-color: var(--nf-surface);
 }
 /* antd v6 emits its tokens as CSS variables by default and puts them on every
  * component root, so the selected-row color is finally readable by name here
@@ -168,7 +216,7 @@ th.ant-table-cell.contacts-fixed-col {
   /* Reserve the gutter so expanding a submenu doesn't shift the labels. */
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  scrollbar-color: var(--color-gray-300) transparent;
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0,
