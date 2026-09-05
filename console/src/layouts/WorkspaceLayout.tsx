@@ -587,9 +587,7 @@ export function WorkspaceLayout() {
 
   return (
     <ContactsCsvUploadProvider>
-      <Layout
-        style={{ minHeight: "100vh", backgroundColor: "var(--nf-surface)" }}
-      >
+      <Layout className="workspace-page" style={{ minHeight: "100vh" }}>
         <Layout>
           <Sider
             width={250}
@@ -610,7 +608,7 @@ export function WorkspaceLayout() {
             collapsible
             collapsed={collapsed}
             trigger={null}
-            className="workspace-sider border-r border-gray-200"
+            className="workspace-sider border-r border-[var(--nf-border)]"
           >
             <div
               style={{
@@ -662,8 +660,7 @@ export function WorkspaceLayout() {
                 style={{
                   textAlign: "center",
                   fontSize: "9px",
-                  color: "#000",
-                  opacity: 0.7,
+                  color: "var(--nf-text-3)",
                   marginBottom: "8px",
                 }}
               >
@@ -684,13 +681,13 @@ export function WorkspaceLayout() {
             </div>
           </Sider>
           <Header
+            className="workspace-header"
             style={{
               position: "fixed",
               top: withBannerOffset("0px"),
               right: 0,
               width: `calc(100% - ${collapsed ? "80px" : "250px"})`,
               height: "64px",
-              backgroundColor: "var(--nf-surface)",
               borderBottom: "1px solid var(--nf-border)",
               padding: "0 24px",
               display: "flex",
@@ -833,10 +830,10 @@ export function WorkspaceLayout() {
               marginTop: withBannerOffset("64px"),
               padding: isSettingsPage ? "0" : "24px",
               transition: "margin-left 0.2s",
-              backgroundColor: "var(--nf-surface)",
+              backgroundColor: "transparent",
             }}
           >
-            <Content style={{ backgroundColor: "var(--nf-surface)" }}>
+            <Content style={{ backgroundColor: "transparent" }}>
               <FileManagerProvider
                 key={`fm-${workspaceId}-${!userPermissions?.templates?.write}`}
                 settings={

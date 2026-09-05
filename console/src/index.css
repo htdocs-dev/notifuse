@@ -5,27 +5,59 @@
    (light, dark, or the OS answer when "system" is picked). */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+@import "@fontsource-variable/inter";
+
 @theme {
-  --color-primary: #0d9488;
+  --color-primary: #12a66f;
 }
 
-/* Light palette. Every surface colour the console paints comes from here or
-   from Tailwind's --color-* scale, so the dark block below can swap them all
-   without touching components. */
+/* ---------------------------------------------------------------------------
+   Palette (fork patch 6). One token set, two values each. Every surface the
+   console paints reads one of these, so the dark block only swaps values.
+     --nf-page      the page behind everything
+     --nf-surface   sidebar, header, cards, table wrappers
+     --nf-elevated  popovers, dropdowns, modals, drawers
+     --nf-border    hairline between panels; -strong for controls
+     --nf-text-*    primary, secondary, tertiary text
+     --primary      the one accent (mint), -soft for fills, -ring for focus
+--------------------------------------------------------------------------- */
 :root {
-  --background: rgb(243, 246, 252);
-  --foreground: #171717;
-  --primary: #0d9488;
-  --nf-surface: #f9f9f9;
-  --nf-border: #f0f0f0;
+  --nf-page: #f4f5f7;
+  --nf-page-bg: var(--nf-page);
+  --nf-surface: #ffffff;
+  --nf-elevated: #ffffff;
+  --nf-input-bg: #ffffff;
+  --nf-hover: rgba(16, 24, 40, 0.04);
+  --nf-chip: rgba(16, 24, 40, 0.06);
+  --nf-border: #e6e8ec;
+  --nf-border-strong: #d0d5dd;
+  --nf-text: #101828;
+  --nf-text-2: #475467;
+  --nf-text-3: #98a2b3;
+  --primary: #12a66f;
+  --primary-strong: #0e8a5c;
+  --nf-accent-soft: rgba(18, 166, 111, 0.1);
+  --nf-ring: rgba(18, 166, 111, 0.3);
+  --nf-card-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --background: var(--nf-page);
+  --foreground: var(--nf-text);
 
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family:
+    "Inter Variable",
+    Inter,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-feature-settings: "cv11", "ss01", "ss03";
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: var(--background);
+  color: var(--nf-text);
+  background-color: var(--nf-page);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -33,36 +65,58 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Dark palette: blue-biased greys under a teal accent.
-   The Tailwind grey scale is reversed, which turns every hard-coded
-   text-gray-500 / bg-gray-50 / border-gray-200 in the components into its dark
-   counterpart. White is remapped to the surface colour because bg-white marks
-   panels; text-white sits on coloured fills and is pinned to #fff where used. */
+/* Dark palette: near-black page with a faint mint glow at the top, graphite
+   panels one step lighter, hairline borders. The Tailwind grey scale is
+   reversed, which turns every hard-coded text-gray-500 / bg-gray-50 /
+   border-gray-200 in the components into its dark counterpart. White is
+   remapped to the panel colour because bg-white marks panels; text-white sits
+   on coloured fills and is pinned to #fff where used. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --background: #0f141a;
-  --foreground: #e6ebf0;
-  --primary: #2dd4bf;
-  --color-primary: #2dd4bf;
-  --nf-surface: #161c23;
-  --nf-border: #2a333d;
+  --nf-page: #0b0d11;
+  --nf-page-bg:
+    radial-gradient(
+      900px 420px at 50% -120px,
+      rgba(62, 207, 142, 0.12),
+      transparent 70%
+    ),
+    var(--nf-page);
+  --nf-surface: #13161b;
+  --nf-elevated: #1a1e25;
+  --nf-input-bg: #0f1217;
+  --nf-hover: rgba(255, 255, 255, 0.035);
+  --nf-chip: rgba(255, 255, 255, 0.07);
+  --nf-border: #232830;
+  --nf-border-strong: #2f3641;
+  --nf-text: #e6eaf0;
+  --nf-text-2: #a3acba;
+  --nf-text-3: #6b7483;
+  --primary: #3ecf8e;
+  --primary-strong: #5ddca2;
+  --color-primary: #3ecf8e;
+  --nf-accent-soft: rgba(62, 207, 142, 0.12);
+  --nf-ring: rgba(62, 207, 142, 0.35);
+  --nf-card-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --background: var(--nf-page);
+  --foreground: var(--nf-text);
 
-  --color-white: #161c23;
-  --color-gray-50: #1b222b;
-  --color-gray-100: #212a34;
-  --color-gray-200: #2e3945;
-  --color-gray-300: #3d4956;
-  --color-gray-400: #7f8c9a;
-  --color-gray-500: #9daab6;
-  --color-gray-600: #b7c2cc;
-  --color-gray-700: #d0d8df;
-  --color-gray-800: #e3e8ed;
-  --color-gray-900: #eef2f5;
-  --color-gray-950: #f7f9fb;
-  --color-slate-500: #9aa8b8;
-  --color-slate-600: #b3bfcc;
-  --color-slate-700: #cbd5e0;
-  --color-slate-900: #edf1f5;
+  --color-white: #13161b;
+  --color-gray-50: #171b21;
+  --color-gray-100: #1c2129;
+  --color-gray-200: #262c36;
+  --color-gray-300: #343b47;
+  --color-gray-400: #6b7483;
+  --color-gray-500: #8b94a3;
+  --color-gray-600: #a3acba;
+  --color-gray-700: #c2c9d3;
+  --color-gray-800: #dce1e8;
+  --color-gray-900: #edf0f4;
+  --color-gray-950: #f7f8fa;
+  --color-slate-500: #8b94a3;
+  --color-slate-600: #a3acba;
+  --color-slate-700: #c2c9d3;
+  --color-slate-900: #edf0f4;
 }
 
 /* The logo is navy on transparent, so it disappears on the dark surface.
@@ -78,13 +132,80 @@ a {
   text-decoration: inherit;
 }
 a:hover {
-  color: var(--primary);
-  text-decoration: underline;
+  color: var(--primary-strong);
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+}
+
+/* Type: tighter tracking on anything title-sized. Unlayered, so it wins over
+   Tailwind's font-medium on the page titles without touching each page. */
+h1,
+h2,
+h3,
+.text-2xl,
+.text-xl,
+.text-lg {
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: var(--nf-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--nf-ring);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--nf-border-strong) transparent;
+}
+
+/* Page chrome. The outer layout carries the page gradient; the inner layouts
+   are transparent so it shows through. Header blurs what scrolls under it. */
+.workspace-page {
+  background: var(--nf-page-bg);
+  background-attachment: fixed;
+}
+.workspace-header {
+  background: color-mix(in srgb, var(--nf-surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.workspace-sider .ant-menu-item,
+.workspace-sider .ant-menu-submenu-title {
+  color: var(--nf-text-2);
+}
+.workspace-sider .ant-menu-item-selected {
+  color: var(--primary) !important;
+  font-weight: 600;
+}
+.workspace-sider .ant-menu-item-selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--primary);
+}
+
+.ant-card {
+  box-shadow: var(--nf-card-shadow);
+}
+
+.ant-table-thead > tr > th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ant-btn-primary:not(:disabled):hover {
+  box-shadow: 0 0 0 3px var(--nf-ring);
 }
 
 /* .drawer-no-transition .ant-drawer-content-wrapper {
@@ -93,7 +214,7 @@ h1 {
 
 .ant-table-tbody > tr:hover > td,
 .tr-hover:hover > td {
-  border-bottom: 1px solid rgba(78, 108, 255, 0.4) !important;
+  border-bottom: 1px solid var(--nf-border-strong) !important;
 }
 
 /* Contacts table: fixed left (email) and right (actions) columns need an
@@ -120,7 +241,7 @@ th.ant-table-cell.contacts-fixed-col {
 .ant-table-tbody
   > tr.ant-table-row.ant-table-row-selected:hover
   > td.ant-table-cell.contacts-fixed-col {
-  background-color: var(--ant-control-item-bg-active, rgb(244, 240, 255));
+  background-color: var(--ant-control-item-bg-active, var(--nf-accent-soft));
 }
 
 .drawer-body-no-padding .ant-drawer-body {
@@ -221,7 +342,7 @@ th.ant-table-cell.contacts-fixed-col {
   /* Reserve the gutter so expanding a submenu doesn't shift the labels. */
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: var(--color-gray-300) transparent;
+  scrollbar-color: var(--nf-border-strong) transparent;
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0,
