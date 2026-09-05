@@ -224,10 +224,10 @@ h3,
  * content shows through underneath. */
 td.ant-table-cell.contacts-fixed-col,
 th.ant-table-cell.contacts-fixed-col {
-  background-color: var(--nf-surface);
+  background-color: var(--nf-page);
 }
 .ant-table-tbody > tr:hover > td.ant-table-cell.contacts-fixed-col {
-  background-color: var(--nf-surface);
+  background-color: var(--nf-page);
 }
 /* antd v6 emits its tokens as CSS variables by default and puts them on every
  * component root, so the selected-row color is finally readable by name here

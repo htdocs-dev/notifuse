@@ -103,13 +103,24 @@ for hours on a large workspace. Now they run the segment's stored SQL inline.
   `segment_service.go`. The queue task still runs 50 s per minute, so a
   workspace drains about 1000 queued contacts a minute instead of 100.
 
-### 6. Teal accent instead of purple
+### 6. Console theme revamp
 
-- `console/src/theme.ts`: `colorPrimary` / `colorLink` `#0D9488` light,
-  `#2DD4BF` dark. `console/src/index.css`: `--primary`, `--color-primary`, and
-  the `a` / `a:hover` colours follow. `BaseNode.tsx` and `WorkspaceLayout.tsx`
-  use `var(--primary)` instead of literals; `web_analytics/lib/types.ts`
-  `PRIMARY_COLOR` follows.
+One token set in `console/src/index.css` drives everything: `--nf-page`,
+`--nf-surface`, `--nf-elevated`, `--nf-border(-strong)`, `--nf-text(-2,-3)`,
+`--primary` (mint `#12A66F` light / `#3ECF8E` dark), `--nf-accent-soft`,
+`--nf-ring`. The `:root[data-theme="dark"]` block swaps the values and
+reverses the Tailwind grey scale. `console/src/theme.ts` maps the same
+variables onto antd tokens (backgrounds, borders, text, Menu, Button, Table,
+Input, Tabs, Tag, Modal, Drawer) and sets Inter (from
+`@fontsource-variable/inter`), 8/12 px radii, 34 px controls.
+
+- `WorkspaceLayout.tsx`: outer `Layout` has class `workspace-page` (page
+  gradient), `Header` has class `workspace-header` (blur); inner layouts are
+  transparent. Version text uses `--nf-text-3`.
+- `index.css` also carries the global polish: title tracking, focus ring, thin
+  scrollbars, active nav bar, card shadow, uppercase table headers, primary
+  button glow. `BaseNode.tsx`, `web_analytics/lib/types.ts` and the
+  contacts table fixed columns read the variables instead of literals.
 - `pages/ContactsPage.tsx`: the unsubscribed list chip uses antd's `default`
   colour (`gray` is not a preset and rendered as a white block in dark mode).
 
