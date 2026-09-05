@@ -524,6 +524,58 @@
             schema:
               $ref: '../components/schemas/common.yaml#/ErrorResponse'
 
+/api/broadcasts.resendToNonOpeners:
+  post:
+    summary: Create a draft broadcast for the recipients who did not open
+    description: >
+      Creates (or rebuilds) a segment of the contacts who were sent the broadcast and
+      never opened it, then creates a draft broadcast on the same list limited to that
+      segment, using the winning (or only) template. Nothing is sent until the draft is
+      scheduled. Only accepted for a broadcast that has finished sending.
+    operationId: resendBroadcastToNonOpeners
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/broadcast.yaml#/ResendToNonOpenersRequest'
+    responses:
+      '201':
+        description: Draft broadcast created
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                broadcast:
+                  $ref: '../components/schemas/broadcast.yaml#/Broadcast'
+      '400':
+        description: Bad request - validation failed or the broadcast has not finished sending
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '401':
+        description: Unauthorized - invalid or missing authentication token
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Broadcast not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '500':
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+
 /api/broadcasts.sendToIndividual:
   post:
     summary: Send broadcast to individual

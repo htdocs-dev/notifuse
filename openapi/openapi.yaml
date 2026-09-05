@@ -74,6 +74,8 @@ paths:
     $ref: './paths/broadcasts.yaml#/~1api~1broadcasts.cancel'
   /api/broadcasts.retryFailed:
     $ref: './paths/broadcasts.yaml#/~1api~1broadcasts.retryFailed'
+  /api/broadcasts.resendToNonOpeners:
+    $ref: './paths/broadcasts.yaml#/~1api~1broadcasts.resendToNonOpeners'
   /api/broadcasts.sendToIndividual:
     $ref: './paths/broadcasts.yaml#/~1api~1broadcasts.sendToIndividual'
   /api/broadcasts.delete:

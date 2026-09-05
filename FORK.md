@@ -63,4 +63,4 @@ the winning (or only) template. Nothing is sent until the draft is scheduled.
 - `internal/domain/mocks/mock_broadcast_service.go`: mock method.
 - Console: `services/api/broadcast.ts` (`resendToNonOpeners`) and a button in
   `pages/BroadcastsPage.tsx`.
-- Not done: `openapi.json` entry for the new endpoint.
+- `openapi/paths/broadcasts.yaml` + `openapi/components/schemas/broadcast.yaml`, bundled into `openapi.json` with `make openapi-bundle`.
